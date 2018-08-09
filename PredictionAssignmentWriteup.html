@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Practical Machine Learning: Prediction Assignment</title>
+  <meta name="Author" content="Kris Tan">
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1265.21">
+  <style type="text/css">
+    p.p4 {margin: 0.0px 0.0px 10.0px 0.0px; line-height: 20.0px; font: 14.0px 'Helvetica Neue'; color: #333333}
+    p.p5 {margin: 0.0px 0.0px 10.0px 0.0px; line-height: 20.0px; font: 14.0px 'Helvetica Neue'; color: #337ab7}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #333333; background-color: #f5f5f5}
+    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #333333; background-color: #ffffff}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #333333; background-color: #f5f5f5; min-height: 16.0px}
+    span.s1 {color: #333333}
+    span.s2 {color: #337ab7}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 41.0px; font: 38.0px 'Helvetica Neue'; color: #333333">Practical Machine Learning: Prediction Assignment</h1>
+<h4 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 19.0px; font: 18.0px 'Helvetica Neue'; color: #333333"><i>Kris Tan</i></h4>
+<h4 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 19.0px; font: 18.0px 'Helvetica Neue'; color: #333333"><i>10 August 2018</i></h4>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Background</h2>
+<p class="p4">Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. The goal of this project is to form a machine learning model by using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Data</h2>
+<p class="p5"><span class="s1">The training data for this project is obtained from: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"><span class="s2">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</span></a> whereas the test data is avaiable here: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"><span class="s2">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</span></a></span></p>
+<p class="p5"><span class="s1">The data comes from this source: <a href="http://groupware.les.inf.puc-rio.br/har"><span class="s2">http://groupware.les.inf.puc-rio.br/har</span></a></span></p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Preliminary Work</h2>
+<p class="p4">The pseudo-random number generator seed was set at 1234. The same seed should be used in order to obtain the same results below.</p>
+<p class="p6">library(caret)</p>
+<p class="p7">## Warning: package 'caret' was built under R version 3.3.3</p>
+<p class="p7">## Loading required package: lattice</p>
+<p class="p7">## Loading required package: ggplot2</p>
+<p class="p6">set.seed(1234)</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Loading the data</h2>
+<p class="p4">We first load the datasets into the environment. Before that, it was discovered that the datasets consists of missing values for some predictors, denoted as “Na”.</p>
+<p class="p6">rawtrainSet &lt;- read.csv(file ="pml-training.csv",na.strings = c("NA","#DIV/0!"))</p>
+<p class="p6">testSet &lt;- read.csv(file="pml-testing.csv",na.strings = c("NA","#DIV/0!"))</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Data Exploration and Cleaning</h2>
+<p class="p4">We check the number of variables and number of the observations in the datasets.</p>
+<p class="p6">dim(rawtrainSet)</p>
+<p class="p7">## [1] 19622 <span class="Apple-converted-space">  </span>160</p>
+<p class="p6">dim(testSet)</p>
+<p class="p7">## [1]<span class="Apple-converted-space">  </span>20 160</p>
+<p class="p4">We found that there is some colums with all mising values and they should be removed.</p>
+<p class="p6">rawtrainSet&lt;-rawtrainSet[,colSums(is.na(rawtrainSet)) == 0]</p>
+<p class="p6">testSet &lt;-testSet[,colSums(is.na(testSet)) == 0]</p>
+<p class="p4">We also determine the number of observations that has missing values</p>
+<p class="p6">sum(!complete.cases(rawtrainSet))</p>
+<p class="p7">## [1] 0</p>
+<p class="p6">sum(!complete.cases(testSet))</p>
+<p class="p7">## [1] 0</p>
+<p class="p4">It seems that every observations has complete values for all variables.</p>
+<p class="p4">Next, we remove some variables (user and timestamp) that is not related to our model building (predicting whether barbel lift is correct or not based on accelerometer data)</p>
+<p class="p6">cols &lt;- c("user_name", "raw_timestamp_part_1",</p>
+<p class="p6"><span class="Apple-converted-space">                    </span>"raw_timestamp_part_2", "cvtd_timestamp","num_window","new_window")</p>
+<p class="p6">rawtrainSet &lt;- rawtrainSet[,-which(names(rawtrainSet)%in% cols)]</p>
+<p class="p6">testSet &lt;- testSet[,-which(names(testSet)%in% cols)]</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Validation Set</h2>
+<p class="p4">Before we start building our model, we remove a part of the training set as the validation set to test the out-of-sample error.</p>
+<p class="p6">split &lt;- 0.80</p>
+<p class="p6">trainind &lt;-<span class="Apple-converted-space">  </span>createDataPartition(rawtrainSet$classe, p=split, list=FALSE)</p>
+<p class="p8"><br></p>
+<p class="p6">trainSet &lt;- rawtrainSet[trainind,]</p>
+<p class="p6">validSet &lt;- rawtrainSet[-trainind,]</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Model building</h2>
+<p class="p4">We would use three methods, random forest, multinormial logistic regression and linear discriminant analysis to build models and select the best one out from them.</p>
+<h3 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 26.0px; font: 24.0px 'Helvetica Neue'; color: #333333">Cross Validation</h3>
+<p class="p4">To eliminate bias and overfitting when selecting the best models, we would do a data split of 80% for training and the rest for testing. The model with the lowest average error from is the best model.</p>
+<p class="p7">## Warning: package 'randomForest' was built under R version 3.3.3</p>
+<p class="p7">## randomForest 4.6-12</p>
+<p class="p7">## Type rfNews() to see new features/changes/bug fixes.</p>
+<p class="p7">##<span class="Apple-converted-space"> </span></p>
+<p class="p7">## Attaching package: 'randomForest'</p>
+<p class="p7">## The following object is masked from 'package:ggplot2':</p>
+<p class="p7">##<span class="Apple-converted-space"> </span></p>
+<p class="p7">## <span class="Apple-converted-space">    </span>margin</p>
+<p class="p7">## # weights:<span class="Apple-converted-space">  </span>275 (216 variable)</p>
+<p class="p7">## initial<span class="Apple-converted-space">  </span>value 20217.759056<span class="Apple-converted-space"> </span></p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>10 value 8654.437261</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>20 value 6847.686348</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>30 value 6564.995601</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>40 value 6307.515304</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>50 value 6072.477793</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>60 value 5911.942737</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>70 value 5787.995729</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>80 value 5738.566156</p>
+<p class="p7">## iter<span class="Apple-converted-space">  </span>90 value 5714.376593</p>
+<p class="p7">## iter 100 value 5686.775671</p>
+<p class="p7">## iter 110 value 5659.081938</p>
+<p class="p7">## iter 120 value 5651.620073</p>
+<p class="p7">## iter 130 value 5637.854145</p>
+<p class="p7">## iter 140 value 5617.825702</p>
+<p class="p7">## iter 150 value 5588.754050</p>
+<p class="p7">## iter 160 value 5516.822236</p>
+<p class="p7">## iter 170 value 5233.227775</p>
+<p class="p7">## iter 180 value 4582.675914</p>
+<p class="p7">## iter 190 value 3531.365331</p>
+<p class="p7">## iter 200 value 2862.718700</p>
+<p class="p7">## iter 210 value 1302.341208</p>
+<p class="p7">## iter 220 value 378.907365</p>
+<p class="p7">## iter 230 value 174.691507</p>
+<p class="p7">## iter 240 value 97.609543</p>
+<p class="p7">## iter 250 value 58.295456</p>
+<p class="p7">## iter 260 value 40.227352</p>
+<p class="p7">## iter 270 value 23.870415</p>
+<p class="p7">## iter 280 value 13.840505</p>
+<p class="p7">## iter 290 value 6.741891</p>
+<p class="p7">## iter 300 value 1.581940</p>
+<p class="p7">## iter 310 value 0.574937</p>
+<p class="p7">## iter 320 value 0.238737</p>
+<p class="p7">## iter 330 value 0.000798</p>
+<p class="p7">## final<span class="Apple-converted-space">  </span>value 0.000048<span class="Apple-converted-space"> </span></p>
+<p class="p7">## converged</p>
+<p class="p7">## Loading required package: MASS</p>
+<p class="p6">accuracy1 #for random forest</p>
+<p class="p7">## [1] 1</p>
+<p class="p6">accuracy2 #for multinormial logistic regression</p>
+<p class="p7">## [1] 0.9958559</p>
+<p class="p6">accuracy3 #for linear discriminant analysis</p>
+<p class="p7">## [1] 0.9620657</p>
+<h3 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 26.0px; font: 24.0px 'Helvetica Neue'; color: #333333">Final Model</h3>
+<p class="p4">From above, we found that Random Forest model achieve the perfect score. We hence pick Random Forest to be our model. We now use the entire training Set to build the final model and use the validation set to get the expected out-of-sample error.</p>
+<p class="p6">finalmod&lt;- randomForest(classe ~. ,data=trainSet,method="class")</p>
+<p class="p6">pred &lt;- predict(finalmod,validSet,method="class")</p>
+<p class="p8"><br></p>
+<p class="p6">accuracy &lt;- sum(pred==validSet$classe)/length(pred)</p>
+<p class="p6">1-accuracy</p>
+<p class="p7">## [1] 0</p>
+<p class="p4">Our expected out-of-sample error from the model seems to be perfect (0).</p>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #333333">Results for the Test Cases</h2>
+<p class="p4">We now use our model to predict the classe for the 20 test cases.</p>
+<p class="p6">finalpred &lt;- predict(mod3,testSet[,-54])</p>
+</body>
+</html>
